@@ -100,8 +100,12 @@ func (rp *reverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	if s.user.cache == nil {
+		log.Debugf("%s: has been routed to proxyRequest", s)
+
 		rp.proxyRequest(s, srw, srw, req)
 	} else {
+		log.Debugf("%s: has been routed to serveFromCache", s)
+
 		rp.serveFromCache(s, srw, req, origParams)
 	}
 
