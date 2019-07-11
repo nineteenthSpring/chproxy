@@ -100,11 +100,11 @@ func (rp *reverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	if s.user.cache == nil {
-		log.Debugf("%s: has been routed to proxyRequest", s)
+		//log.Debugf("%s: has been routed to proxyRequest", s)
 
 		rp.proxyRequest(s, srw, srw, req)
 	} else {
-		log.Debugf("%s: has been routed to serveFromCache", s)
+		//log.Debugf("%s: has been routed to serverFromCache", s)
 
 		rp.serveFromCache(s, srw, req, origParams)
 	}
@@ -284,6 +284,14 @@ func (rp *reverseProxy) serveFromCache(s *scope, srw *statResponseWriter, req *h
 		log.Debugf("%s: cache hit", s)
 		return
 	}
+
+	if err == cache.ErrGraceTimeElapsed {
+		// grace time refuse error while serving the response.
+		err = fmt.Errorf("%s: %s; query: %q", s, err, q)
+		respondWith(srw, err, http.StatusGatewayTimeout)
+		return
+	}
+
 	if err != cache.ErrMissing {
 		// Unexpected error while serving the response.
 		err = fmt.Errorf("%s: %s; query: %q", s, err, q)
